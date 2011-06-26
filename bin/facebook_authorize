@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+
+use FindBin qw($Bin);
+use lib "$Bin/../lib";
+
+use Term::ReadKey;
+
+use Data::Dumper;
+
+use NNTP::Portal::Plugin::Facebook;
+use NNTP::Portal::Config;
+
+my $fb = NNTP::Portal::Plugin::Facebook->new();
+my $token = $fb->get_config_access_token;
+if( defined $token ) {
+	print "Token exists!\n";
+	print "Token: $token\n";
+	exit;
+}
+
+print "Enter user e-mail address: ";
+chomp(my $user = <STDIN>);
+print "Enter password: ";
+ReadMode('noecho');
+chomp(my $password = ReadLine(0));
+ReadMode 0;
+
+print "\n";
+
+my $token_info = $fb->get_authorization( $user, $password);
+
+$token = $token_info->{token};
+
+print "Token: $token\n";
+
+$fb->set_config_access_token($token);

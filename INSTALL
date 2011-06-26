@@ -1,0 +1,38 @@
+NNTP Portal
+	- Perl
+	- Perl modules
+		* POE::Component::Server::NNTP
+		* Config::Merge
+			Debian: libconfig-merge-perl
+		* File::HomeDir
+			Debian: libfile-homedir-perl
+		* YAML::XS
+			Debian: libyaml-libyaml-perl
+		* Moose
+			Debian: libmoose-perl
+		* MooseX::Method::Signatures
+			Debian: libmoosex-method-signatures-perl
+		* MooseX::Params::Validate	
+			Debian: libmoosex-params-validate-perl
+		* Mail::Box
+			Debian: libmail-box-perl
+		* DateTime::Format::Mail
+			Debian: libdatetime-format-mail-perl
+		* MooseX::Types::DateTime
+			Debian: libmoosex-types-datetime-perl
+		* DBI
+			Debian: libdbi-perl
+		* DBD::SQLite
+			Debian: libdbd-sqlite3-perl
+		* Text::Autoformat
+			Debian: libtext-autoformat-perl
+		* HTML::Display
+			Debian: libhtml-display-perl
+		* MooseX::Log::Log4perl
+			Debian: libmoosex-log-log4perl-perl
+
+Facebook plugin
+	- Perl modules
+		* Facebook::Graph
+		* WWW::Mechanize
+			Debian: libwww-mechanize-perl
