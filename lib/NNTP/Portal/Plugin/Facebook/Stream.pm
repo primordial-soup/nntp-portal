@@ -57,7 +57,7 @@ method build_messages(HashRef $stream) {
 			my @sentences = $splitter->split_array($post->{message});
 			my @subject;
 			my $subject_length = 0;
-			while($subject_length < 120) {
+			while(@sentences && $subject_length < 120) {
 				my $next_sent = shift @sentences;
 				$subject_length += length $next_sent;
 				push @subject, $next_sent;
