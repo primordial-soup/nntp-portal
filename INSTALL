@@ -30,6 +30,7 @@ NNTP Portal
 			Debian: libhtml-display-perl
 		* MooseX::Log::Log4perl
 			Debian: libmoosex-log-log4perl-perl
+		* Lingua::Sentence
 
 Facebook plugin
 	- Perl modules

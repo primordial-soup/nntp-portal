@@ -9,6 +9,8 @@ use Mail::Address;
 use Text::Autoformat;
 use Text::Autoformat qw/autoformat break_wrap/;
 
+use Lingua::Sentence;
+
 use Data::Dumper;
 use DDP;
 
@@ -17,6 +19,8 @@ my $dt_parser = DateTime::Format::Strptime->new(
 		time_zone => '0',
 );
 
+my $splitter = Lingua::Sentence->new('en');
+
 method build_messages(HashRef $stream) {
 	my @messages;
 	my $data = $stream->{data};
@@ -24,12 +28,19 @@ method build_messages(HashRef $stream) {
 		next unless $post->{type} =~ /^(status|link|video)$/;
 		my @headers;
 
+		my $subject_gen = 0;
+
 		push @headers, ( From =>
 			$self->get_facebook_address( $post->{from} ) );
 
 		my @to;
+		my @ngs;
+		# TODO: generate proper newsgroups for all categories
+		push @ngs, $self->get_friend_newsgroup( $post->{from} )->{newsgroup};
 		for my $person (@{$post->{to}{data}}) {
+			next unless defined $person;
 			push @to, $self->get_facebook_address( $person );
+			push @ngs, $self->get_friend_newsgroup( $person )->{newsgroup};
 		}
 		push @headers, ( To => \@to );
 
@@ -38,14 +49,23 @@ method build_messages(HashRef $stream) {
 		my @comment_act = grep { $_->{name} eq 'Comment' } @{$post->{actions}};
 		push @headers, ( 'X-Facebook-Comment-URL' => '<'.$comment_act[0]->{link}.'>' ) if @comment_act;
 
-		# TODO: Path: header
-
-		# TODO: generate proper newsgroups for all categories
-		my @ngs;
-		push @ngs, $self->get_friend_newsgroup( $post->{from} )->{newsgroup};
-		for my $person (@{$post->{to}{data}}) {
-			push @ngs, $self->get_friend_newsgroup( $person )->{newsgroup};
+		if( defined $post->{name} && length $post->{name} > 0 ) {
+			push @headers, ( Subject => $post->{name} );
+		} elsif( defined $post->{caption} && length $post->{caption} > 0 ) {
+			push @headers, ( Subject => $post->{caption} );
+		} elsif( defined $post->{message} && length $post->{message} > 0 ) {
+			my @sentences = $splitter->split_array($post->{message});
+			my @subject;
+			my $subject_length = 0;
+			while($subject_length < 120) {
+				my $next_sent = shift @sentences;
+				$subject_length += length $next_sent;
+				push @subject, $next_sent;
+			}
+			push @headers, ( Subject => (join ' ', @subject) );
 		}
+
+		# TODO: Path: header
 
 		my $time = $post->{created_time};
 		my $created_dt = $dt_parser->parse_datetime( $time );
