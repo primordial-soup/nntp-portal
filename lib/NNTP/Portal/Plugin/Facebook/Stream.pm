@@ -49,10 +49,13 @@ method build_messages(HashRef $stream) {
 		my @comment_act = grep { $_->{name} eq 'Comment' } @{$post->{actions}};
 		push @headers, ( 'X-Facebook-Comment-URL' => '<'.$comment_act[0]->{link}.'>' ) if @comment_act;
 
+		push @headers, ( 'X-Facebook-Type' => $post->{type} ); # TODO: different type if it is a comment
+
+		my $subject_string = "\u$post->{type}: ";
 		if( defined $post->{name} && length $post->{name} > 0 ) {
-			push @headers, ( Subject => $post->{name} );
+			$subject_string .= $post->{name};
 		} elsif( defined $post->{caption} && length $post->{caption} > 0 ) {
-			push @headers, ( Subject => $post->{caption} );
+			$subject_string .= $post->{caption};
 		} elsif( defined $post->{message} && length $post->{message} > 0 ) {
 			my @sentences = $splitter->split_array($post->{message});
 			my @subject;
@@ -62,8 +65,9 @@ method build_messages(HashRef $stream) {
 				$subject_length += length $next_sent;
 				push @subject, $next_sent;
 			}
-			push @headers, ( Subject => (join ' ', @subject) );
+			$subject_string .= join ' ', @subject;
 		}
+		push @headers, ( Subject => $subject_string );
 
 		# TODO: Path: header
 
