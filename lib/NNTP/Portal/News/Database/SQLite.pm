@@ -24,6 +24,7 @@ has servername => (
 method init {
 	# we add a funtion for WILDMAT expressions
 	# See L<http://www.justatheory.com/computers/databases/sqlite/add_regexen.html>
+	$self->dbh->{sqlite_unicode} = 1;
 	$self->dbh->func('wildmat', 2, sub {
 		my ($wildmat, $string) = @_;
 		return $string =~ NNTP::Portal::Util->wildmat_re($wildmat);
@@ -42,8 +43,7 @@ method get_message(Str $msgID) {
 	my $row = $msgID_sth->fetchrow_arrayref();
 	$msgID_sth->finish;
 	return undef unless defined $row;
-	my $msg =  NNTP::Message->read($row->[0]);
-
+	my $msg = NNTP::Message->read( $row->[0] );
 	return $msg;
 }
 

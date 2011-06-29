@@ -60,8 +60,13 @@ sub run {
 		Class::MOP::load_class( $plugin );
 		my $instance = $plugin->new( db => $db );
 		$plugin_instances{$plugin} = $instance;
-		$instance->init();
-		$instance->get_newsgroups();
+		eval {
+			$instance->init();
+			$instance->get_newsgroups();
+		};
+		if($@) {
+			server_logger->error("Error initializing $plugin: $@");
+		}
 	}
 
 	POE::Session->create(
@@ -91,7 +96,12 @@ sub run {
 				server_logger()->info("Updating plugins at ", time);
 				for my $plugin (keys %plugin_instances) {
 					server_logger()->info("Plugin ", $plugin, " @ ", time);
-					$plugin_instances{$plugin}->get_messages();
+					eval {
+						$plugin_instances{$plugin}->get_messages();
+					};
+					if($@) {
+						server_logger->error("Error getting messages from $plugin: $@");
+					}
 				}
 				# TODO: temporary continuous update every $update_interval
 				$_[KERNEL]->delay( plugin_update => $update_interval );
@@ -371,34 +381,27 @@ sub nntp_cmd_article_helper {
 	# a doubled-period sequence (..) to escape it (need to check if send_to_client does this)
 	given( $part ) {
 		when("ARTICLE") {
-			#my $msg_str = $msg->string;
-			#$reply .= "$msg_str";
+			my $msg_str = $msg->head . $msg->body->decoded;
 			my $reply = "220 $article_id $msgid article retrieved - ARTICLE follows";
 			send_logger->info("$client_id: $reply");
-			$kernel->post( $sender, 'send_to_client', $client_id, "$reply" );
-			$kernel->post( $sender, 'send_to_client', $client_id, $msg->string );
+			$kernel->post( $sender, 'send_to_client', $client_id, $reply );
+			$kernel->post( $sender, 'send_to_client', $client_id, $msg_str );
 			$kernel->post( $sender, 'send_to_client', $client_id, '.' );
 		}
 		when("HEAD") {
 			my $head = $msg->head;
 			my $head_str = "$head";
-			#my $head_str = "Subject: This\r\nFrom: me\@example.com";
 			$head_str =~ s/\n*$//s; # remove separating line
-			#my @heads = split /\n/, $head_str;
-			#for my $h (@heads) {
-			#        $kernel->post( $sender, 'send_to_client', $client_id, $h );
-			#}
-			#$reply .=  "$head_str";
 			my $reply = "221 $article_id $msgid article retrieved - HEAD follows";
 			send_logger->info("$client_id: $reply");
-			$kernel->post( $sender, 'send_to_client', $client_id, "$reply" );
+			$kernel->post( $sender, 'send_to_client', $client_id, $reply );
 			$kernel->post( $sender, 'send_to_client', $client_id, $head_str );
 			$kernel->post( $sender, 'send_to_client', $client_id, '.' );
 		}
 		when("BODY") {
 			my $reply = "222 $article_id $msgid article retrieved - BODY follows";
 			send_logger->info("$client_id: $reply");
-			$kernel->post( $sender, 'send_to_client', $client_id, "$reply" );
+			$kernel->post( $sender, 'send_to_client', $client_id, $reply );
 			$kernel->post( $sender, 'send_to_client', $client_id, $msg->body->decoded );
 			$kernel->post( $sender, 'send_to_client', $client_id, '.' );
 		}
