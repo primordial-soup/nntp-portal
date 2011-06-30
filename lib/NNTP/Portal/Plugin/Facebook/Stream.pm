@@ -93,11 +93,11 @@ method build_messages(HashRef $stream) {
 		push @body_para, "Link: <$post->{link}>" if defined $post->{link};
 
 		for my $prop (@{ $post->{properties} }) {
-			my $prop_str;
-			$prop_str .= "$prop->{name}: "  if defined $prop->{name};
-			$prop_str .= $prop->{text}      if defined $prop->{text};
-			$prop_str .= "<$prop->{href}>"  if defined $prop->{href};
-			push @body_para, $prop_str;
+			my @prop_build;
+			push @prop_build, "$prop->{name}:"  if defined $prop->{name};
+			push @prop_build, $prop->{text}     if defined $prop->{text};
+			push @prop_build, "<$prop->{href}>" if defined $prop->{href};
+			push @body_para, (join ' ', @prop_build);
 		}
 
 		my $body = join "\n\n", @body_para;
