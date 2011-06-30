@@ -100,7 +100,7 @@ sub run {
 						$plugin_instances{$plugin}->get_messages();
 					};
 					if($@) {
-						server_logger->error("Error getting messages from $plugin: $@");
+						server_logger()->error("Error getting messages from $plugin: $@");
 					}
 				}
 				# TODO: temporary continuous update every $update_interval
