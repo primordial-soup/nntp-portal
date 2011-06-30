@@ -51,6 +51,11 @@ method build_messages(HashRef $stream) {
 
 		push @headers, ( 'X-Facebook-Type' => $post->{type} ); # TODO: different type if it is a comment
 
+		if( defined $post->{application}{name} && $post->{application}{name} eq 'Questions' ) {
+			( my  $qid = $post->{id} ) =~ s/.*_//;
+			push @headers, ( 'X-Facebook-Question-URL' => "http://www.facebook.com/home.php?sk=question&id=$qid" );
+		}
+
 		my $subject_string = "\u$post->{type}: ";
 		if( defined $post->{name} && length $post->{name} > 0 ) {
 			$subject_string .= $post->{name};
