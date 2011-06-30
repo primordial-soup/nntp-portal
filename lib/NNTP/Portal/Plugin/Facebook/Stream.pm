@@ -51,9 +51,14 @@ method build_messages(HashRef $stream) {
 
 		push @headers, ( 'X-Facebook-Type' => $post->{type} ); # TODO: different type if it is a comment
 
-		if( defined $post->{application}{name} && $post->{application}{name} eq 'Questions' ) {
-			( my  $qid = $post->{id} ) =~ s/.*_//;
-			push @headers, ( 'X-Facebook-Question-URL' => "http://www.facebook.com/home.php?sk=question&id=$qid" );
+		if( defined $post->{application} ) {
+			push @headers, ( 'X-Facebook-Application-Name' => $post->{application}{name} );
+			push @headers, ( 'X-Facebook-Application-URL' =>
+				"http://www.facebook.com/apps/application.php?id=$post->{application}{id}" );
+			if( $post->{application}{name} eq 'Questions' ) {
+				( my  $qid = $post->{id} ) =~ s/.*_//;
+				push @headers, ( 'X-Facebook-Question-URL' => "http://www.facebook.com/home.php?sk=question&id=$qid" );
+			}
 		}
 
 		my $subject_string = "\u$post->{type}: ";
@@ -86,6 +91,14 @@ method build_messages(HashRef $stream) {
 		push @body_para, "Caption: $post->{caption}" if defined $post->{caption};
 		push @body_para, "Source: <$post->{source}>" if defined $post->{source};
 		push @body_para, "Link: <$post->{link}>" if defined $post->{link};
+
+		for my $prop (@{ $post->{properties} }) {
+			my $prop_str;
+			$prop_str .= "$prop->{name}: "  if defined $prop->{name};
+			$prop_str .= $prop->{text}      if defined $prop->{text};
+			$prop_str .= "<$prop->{href}>"  if defined $prop->{href};
+			push @body_para, $prop_str;
+		}
 
 		my $body = join "\n\n", @body_para;
 		my $body_format = autoformat( $body, { all => 1, break => break_wrap } );
