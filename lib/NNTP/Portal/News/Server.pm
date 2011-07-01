@@ -163,7 +163,7 @@ sub nntpd_disconnected {
 # <url:find:rfc3977.txt#line=3093>
 sub nntpd_cmd_post {
 	my ($kernel,$sender,$client_id) = @_[KERNEL,SENDER,ARG0];
-	recv_logger->debug("$client_id: POST");
+	recv_logger->info("$client_id: POST");
 	$kernel->post( $sender, 'send_to_client', $client_id, '440 posting not allowed' );
 	return;
 }
@@ -173,7 +173,7 @@ sub nntpd_cmd_post {
 # Not a transit server
 sub nntpd_cmd_ihave {
 	my ($kernel,$sender,$client_id) = @_[KERNEL,SENDER,ARG0];
-	recv_logger->debug("$client_id: IHAVE");
+	recv_logger->info("$client_id: IHAVE");
 	$kernel->post( $sender, 'send_to_client', $client_id, '435 article not wanted' );
 	return;
 }
@@ -183,7 +183,7 @@ sub nntpd_cmd_ihave {
 #    Indicating capability: NEWNEWS
 sub nntpd_cmd_newnews {
 	my ($kernel,$sender,$client_id) = @_[KERNEL,SENDER,ARG0];
-	recv_logger->debug("$client_id: NEWNEWS");
+	recv_logger->info("$client_id: NEWNEWS");
 	$kernel->post( $sender, 'send_to_client', $client_id, '230 list of new articles follows' );
 	$kernel->post( $sender, 'send_to_client', $client_id, '.' );
 	return;
@@ -194,13 +194,21 @@ sub nntpd_cmd_newnews {
 #    Indicating capability: READER
 sub nntpd_cmd_newgroups {
 	my ($kernel,$heap,$sender,$client_id, $date, $time, $gmt ) = @_[KERNEL,HEAP, SENDER,ARG0, ARG1, ARG2, ARG3 ];
+	recv_logger->info("$client_id: NEWGROUPS ". (join ' ', ($date, $time, $gmt)) );
+	if( length($date) == length('yymmdd') ) {
+		# add the current century in front
+		$date = DateTime->now->strftime("%C") . $date;
+	}
 	my $dt = $heap->{datetime}->parse_datetime("$date $time"); # TODO: ignoring $gmt for now
+	server_logger->debug("$client_id: using DateTime $dt");
 	my $newsgroups = $heap->{db}->get_new_newsgroups( $dt );
 	$kernel->post( $sender, 'send_to_client', $client_id, '231 list of new newsgroups follows' );
 	for my $ng (@$newsgroups) {
+		server_logger->debug("$client_id: getting newsgroup stats for $ng");
 		my $hr = $heap->{db}->get_newsgroup_stats($ng);
-		$kernel->post( $sender, 'send_to_client', $client_id,
-			"$ng $hr->{high} $hr->{low} y" );
+		my $reply = "$ng $hr->{high} $hr->{low} y";
+		send_logger->info($reply);
+		$kernel->post( $sender, 'send_to_client', $client_id, $reply );
 	}
 	$kernel->post( $sender, 'send_to_client', $client_id, '.' );
 	return;

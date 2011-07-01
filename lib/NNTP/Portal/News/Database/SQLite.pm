@@ -126,7 +126,11 @@ method get_new_newsgroups(DateTime $time) {
 	);
 	my $unix_time = $time->epoch;
 	$new_newsgroups->execute($unix_time) or croak $new_newsgroups->errstr;
-	return $new_newsgroups->fetchall_arrayref();
+	my $newsgroups;
+	for my $row (@{ $new_newsgroups->fetchall_arrayref([0]) }) {
+		push @$newsgroups, $row->[0];
+	}
+	return $newsgroups;
 }
 
 # DONE
