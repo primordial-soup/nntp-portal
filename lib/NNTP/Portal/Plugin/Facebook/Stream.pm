@@ -6,9 +6,6 @@ use MooseX::Method::Signatures;
 use Mail::Box;
 use Mail::Address;
 
-use Text::Autoformat;
-use Text::Autoformat qw/autoformat break_wrap/;
-
 use Lingua::Sentence;
 
 use Data::Dumper;
@@ -101,9 +98,8 @@ method build_messages(HashRef $stream) {
 		}
 
 		my $body = join "\n\n", @body_para;
-		my $body_format = autoformat( $body, { all => 1, break => break_wrap } );
-		$body_format =~ s/\n*$//s;	# strip ending newlines
-		my $top_msg = NNTP::Message->build( @headers, data => $body_format );
+		$body =~ s/\n*$//s;	# strip ending newlines
+		my $top_msg = NNTP::Message->build( @headers, data => $body );
 
 		$top_msg->print; print "\n---\n";
 
