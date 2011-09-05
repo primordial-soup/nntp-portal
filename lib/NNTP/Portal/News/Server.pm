@@ -65,7 +65,7 @@ sub run {
 			$instance->get_newsgroups();
 		};
 		if($@) {
-			server_logger->error("Error initializing $plugin: $@");
+			server_logger()->error("Error initializing $plugin: $@");
 		}
 	}
 
