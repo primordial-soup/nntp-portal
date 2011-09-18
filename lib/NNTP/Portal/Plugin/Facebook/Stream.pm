@@ -84,9 +84,9 @@ method build_messages(HashRef $stream) {
 		my @body_para;
 		push @body_para,  $post->{message} if defined $post->{message};
 		push @body_para, "Name: $post->{name}" if defined $post->{name};
-		if defined $post->{description} {
+		if(defined $post->{description}) {
 			# quote description
-			my ( $quoted_desc = $post->{description}) =~ s/^/> /gm;
+			(my  $quoted_desc = $post->{description} ) =~ s/^/> /gm;
 			push @body_para,  "Description:\n" . $quoted_desc;
 		}
 		push @body_para, "Caption: $post->{caption}" if defined $post->{caption};
