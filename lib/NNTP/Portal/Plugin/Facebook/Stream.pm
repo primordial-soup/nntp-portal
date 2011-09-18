@@ -87,6 +87,7 @@ method build_messages(HashRef $stream) {
 		if(defined $post->{description}) {
 			# quote description
 			(my  $quoted_desc = $post->{description} ) =~ s/^/> /gm;
+			$quoted_desc =~ s/^> $/>/gm; # remove space from empty lines
 			push @body_para,  "Description:\n" . $quoted_desc;
 		}
 		push @body_para, "Caption: $post->{caption}" if defined $post->{caption};
