@@ -73,6 +73,7 @@ method build_messages(HashRef $stream) {
 				push @subject, $next_sent;
 			}
 			$subject_string .= join ' ', @subject;
+			$subject_string =~ s/\n/ /g;
 		}
 		push @headers, ( Subject => $subject_string );
 
